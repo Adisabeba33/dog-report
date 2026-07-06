@@ -135,6 +135,20 @@ export const IconSearch = (p: P) => (
     <path d="m20 20-3.5-3.5" />
   </svg>
 );
+export const IconFilter = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M4 7h11M4 12h16M4 17h8" />
+    <circle cx="17" cy="7" r="2.2" fill="currentColor" stroke="none" />
+    <circle cx="9" cy="12" r="2.2" fill="currentColor" stroke="none" />
+    <circle cx="14" cy="17" r="2.2" fill="currentColor" stroke="none" />
+  </svg>
+);
+export const IconCalendarSmall = (p: P) => (
+  <svg {...base(p)}>
+    <rect x="4" y="5" width="16" height="15" rx="2.5" />
+    <path d="M4 9h16M8 3v4M16 3v4" />
+  </svg>
+);
 export const IconTrash = (p: P) => (
   <svg {...base(p)}>
     <path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13" />

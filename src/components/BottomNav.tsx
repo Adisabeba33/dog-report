@@ -31,7 +31,7 @@ export default function BottomNav() {
               key={href}
               href={href}
               className={`flex flex-col items-center gap-0.5 py-2.5 text-[11px] font-semibold transition-colors ${
-                active ? "text-charcoal" : "text-muted"
+                active ? "text-[#5c7249]" : "text-muted"
               }`}
             >
               <span
