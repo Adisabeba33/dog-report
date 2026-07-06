@@ -48,7 +48,7 @@ export default function ClientsPage() {
           clients.map((c) => {
             const dogs = dogsForClient(c.id);
             return (
-              <Link key={c.id} href={`/clients/${c.id}`} className="card p-3.5 flex items-center gap-3 active:bg-cream/40">
+              <Link key={c.id} href={`/clients/detail?id=${c.id}`} className="card p-3.5 flex items-center gap-3 active:bg-cream/40">
                 <div className="flex -space-x-3">
                   {dogs.slice(0, 3).map((dog) => (
                     <DogAvatar key={dog.id} name={dog.name} photo={dog.photo_url} size={44} className="ring-2 ring-warmwhite" />

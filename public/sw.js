@@ -1,12 +1,22 @@
 // Minimal offline-first service worker for the Walk Report PWA.
-// App-shell caching keeps the app usable without a connection; all data
-// lives in localStorage so the app is fully functional offline.
+// Base-path aware: paths resolve against the SW scope, so it works whether
+// the app is served from the root or a repo subpath (e.g. /dog-report on Pages).
 const CACHE = "walk-report-v1";
-const APP_SHELL = ["/today", "/schedule", "/clients", "/dogs", "/reports", "/settings", "/manifest.webmanifest", "/icon.svg"];
+const BASE = new URL("./", self.location.href).href; // e.g. https://host/dog-report/
+const SHELL = [
+  "today/",
+  "schedule/",
+  "clients/",
+  "dogs/",
+  "reports/",
+  "settings/",
+  "manifest.webmanifest",
+  "icon.svg",
+].map((p) => new URL(p, BASE).href);
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE).then((cache) => cache.addAll(APP_SHELL).catch(() => {})),
+    caches.open(CACHE).then((cache) => cache.addAll(SHELL).catch(() => {})),
   );
   self.skipWaiting();
 });
@@ -26,7 +36,7 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
-  // Network-first for navigations, falling back to cache/offline shell.
+  // Network-first for navigations, falling back to cache then the Today shell.
   if (request.mode === "navigate") {
     event.respondWith(
       fetch(request)
@@ -35,7 +45,11 @@ self.addEventListener("fetch", (event) => {
           caches.open(CACHE).then((c) => c.put(request, copy));
           return res;
         })
-        .catch(() => caches.match(request).then((r) => r || caches.match("/today"))),
+        .catch(() =>
+          caches
+            .match(request)
+            .then((r) => r || caches.match(new URL("today/", BASE).href)),
+        ),
     );
     return;
   }
@@ -45,13 +59,18 @@ self.addEventListener("fetch", (event) => {
     caches.match(request).then(
       (cached) =>
         cached ||
-        fetch(request).then((res) => {
-          if (res.ok && (request.destination === "style" || request.destination === "script" || request.destination === "image" || request.destination === "font")) {
-            const copy = res.clone();
-            caches.open(CACHE).then((c) => c.put(request, copy));
-          }
-          return res;
-        }).catch(() => cached),
+        fetch(request)
+          .then((res) => {
+            if (
+              res.ok &&
+              ["style", "script", "image", "font"].includes(request.destination)
+            ) {
+              const copy = res.clone();
+              caches.open(CACHE).then((c) => c.put(request, copy));
+            }
+            return res;
+          })
+          .catch(() => cached),
     ),
   );
 });

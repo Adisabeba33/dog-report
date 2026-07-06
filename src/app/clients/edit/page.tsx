@@ -1,12 +1,14 @@
 "use client";
 
-import { useParams } from "next/navigation";
+
+import { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { useStore } from "@/lib/store";
 import ClientForm from "@/components/ClientForm";
 import { PageHeader, EmptyState } from "@/components/ui";
 
-export default function EditClientPage() {
-  const { id } = useParams<{ id: string }>();
+function EditClientPage() {
+  const id = useSearchParams().get("id") ?? "";
   const { getClient } = useStore();
   const client = getClient(id);
   if (!client) {
@@ -18,4 +20,13 @@ export default function EditClientPage() {
     );
   }
   return <ClientForm existing={client} />;
+}
+
+
+export default function Page() {
+  return (
+    <Suspense fallback={null}>
+      <EditClientPage />
+    </Suspense>
+  );
 }

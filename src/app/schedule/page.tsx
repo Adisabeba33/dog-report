@@ -126,7 +126,7 @@ export default function SchedulePage() {
                     return (
                       <button
                         key={w.id}
-                        onClick={() => router.push(`/walks/${w.id}/edit`)}
+                        onClick={() => router.push(`/walks/edit?id=${w.id}`)}
                         className="card w-full p-3 flex items-center gap-3 text-left active:bg-cream/40"
                       >
                         <div className="w-16 shrink-0">

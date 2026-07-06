@@ -145,3 +145,6 @@ vite.config.ts.timestamp-*
 # next.js
 /.next/
 next-env.d.ts
+
+# static export output
+/out/

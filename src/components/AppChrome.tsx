@@ -13,10 +13,14 @@ export default function AppChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { ready } = useStore();
 
-  // Register the service worker for offline / add-to-home-screen.
+  // Register the service worker for offline / add-to-home-screen. The scope
+  // and script path respect the deploy base path (e.g. /dog-report on Pages).
   useEffect(() => {
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("/sw.js").catch(() => {});
+      const base = process.env.NEXT_PUBLIC_BASE_PATH || "";
+      navigator.serviceWorker
+        .register(`${base}/sw.js`, { scope: `${base}/` })
+        .catch(() => {});
     }
   }, []);
 

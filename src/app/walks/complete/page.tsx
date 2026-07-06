@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { Suspense, useMemo, useState } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useStore } from "@/lib/store";
 import type { Mood, Energy } from "@/lib/types";
 import { PageHeader, EmptyState, DogAvatar } from "@/components/ui";
@@ -13,8 +13,8 @@ import { IconCheck } from "@/components/icons";
 const MOODS: Mood[] = ["Happy", "Calm", "Excited", "Nervous", "Tired", "Playful", "Relaxed"];
 const ENERGIES: Energy[] = ["Low", "Medium", "High"];
 
-export default function CompleteWalkPage() {
-  const { id } = useParams<{ id: string }>();
+function CompleteWalkPage() {
+  const id = useSearchParams().get("id") ?? "";
   const router = useRouter();
   const { getWalk, getDog, db, addReport, updateReport, reportForWalk } = useStore();
 
@@ -73,10 +73,10 @@ export default function CompleteWalkPage() {
     };
     if (existingReport) {
       updateReport(existingReport.id, data);
-      router.push(`/reports/${existingReport.id}`);
+      router.push(`/reports/detail?id=${existingReport.id}`);
     } else {
       const r = addReport(data);
-      router.push(`/reports/${r.id}`);
+      router.push(`/reports/detail?id=${r.id}`);
     }
   };
 
@@ -223,5 +223,14 @@ function YesNo({ label, value, onChange }: { label: string; value: boolean; onCh
         </button>
       </div>
     </div>
+  );
+}
+
+
+export default function Page() {
+  return (
+    <Suspense fallback={null}>
+      <CompleteWalkPage />
+    </Suspense>
   );
 }

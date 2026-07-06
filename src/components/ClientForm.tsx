@@ -34,10 +34,10 @@ export default function ClientForm({ existing }: { existing?: Client }) {
     if (!d.owner_name.trim()) return;
     if (existing) {
       updateClient(existing.id, d);
-      router.push(`/clients/${existing.id}`);
+      router.push(`/clients/detail?id=${existing.id}`);
     } else {
       const c = addClient(d);
-      router.push(`/clients/${c.id}`);
+      router.push(`/clients/detail?id=${c.id}`);
     }
   };
 

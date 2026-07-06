@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { Suspense, useRef, useState } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useStore } from "@/lib/store";
 import ReportCard from "@/components/ReportCard";
 import { PageHeader, EmptyState } from "@/components/ui";
@@ -18,8 +18,8 @@ import {
   IconEdit,
 } from "@/components/icons";
 
-export default function ReportPreviewPage() {
-  const { id } = useParams<{ id: string }>();
+function ReportPreviewPage() {
+  const id = useSearchParams().get("id") ?? "";
   const router = useRouter();
   const { getReport, getDog, getClient, db, updateReport } = useStore();
   const cardRef = useRef<HTMLDivElement>(null);
@@ -113,7 +113,7 @@ export default function ReportPreviewPage() {
         back="/reports"
         right={
           <button
-            onClick={() => router.push(`/walks/${report.walk_id}/complete`)}
+            onClick={() => router.push(`/walks/complete?id=${report.walk_id}`)}
             aria-label="Edit report"
             className="h-9 w-9 flex items-center justify-center rounded-full active:bg-beige/60"
           >
@@ -183,5 +183,14 @@ export default function ReportPreviewPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+
+export default function Page() {
+  return (
+    <Suspense fallback={null}>
+      <ReportPreviewPage />
+    </Suspense>
   );
 }

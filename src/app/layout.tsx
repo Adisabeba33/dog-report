@@ -17,19 +17,21 @@ const body = Inter({
   display: "swap",
 });
 
+const base = process.env.NEXT_PUBLIC_BASE_PATH || "";
+
 export const metadata: Metadata = {
   title: "Walk Report",
   description:
     "A fast, friendly work assistant for dog walkers — plan the week, complete walks, and send beautiful owner reports.",
-  manifest: "/manifest.webmanifest",
+  manifest: `${base}/manifest.webmanifest`,
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
     title: "Walk Report",
   },
   icons: {
-    icon: "/icon.svg",
-    apple: "/apple-touch-icon.png",
+    icon: `${base}/icon.svg`,
+    apple: `${base}/apple-touch-icon.png`,
   },
 };
 

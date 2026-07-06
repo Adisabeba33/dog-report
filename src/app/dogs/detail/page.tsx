@@ -1,14 +1,16 @@
 "use client";
 
+
+import { Suspense } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useStore } from "@/lib/store";
 import { PageHeader, EmptyState, DogAvatar, StatusBadge } from "@/components/ui";
 import { formatShortDate, formatTime, todayISO } from "@/lib/date";
 import { IconEdit, IconLock, IconPlus, IconChevron } from "@/components/icons";
 
-export default function DogDetailPage() {
-  const { id } = useParams<{ id: string }>();
+function DogDetailPage() {
+  const id = useSearchParams().get("id") ?? "";
   const { getDog, getClient, db } = useStore();
   const dog = getDog(id);
 
@@ -49,7 +51,7 @@ export default function DogDetailPage() {
         title={dog.name}
         back="/dogs"
         right={
-          <Link href={`/dogs/${dog.id}/edit`} aria-label="Edit" className="h-9 w-9 flex items-center justify-center rounded-full active:bg-beige/60">
+          <Link href={`/dogs/edit?id=${dog.id}`} aria-label="Edit" className="h-9 w-9 flex items-center justify-center rounded-full active:bg-beige/60">
             <IconEdit width={20} height={20} />
           </Link>
         }
@@ -65,7 +67,7 @@ export default function DogDetailPage() {
               {[dog.breed, dog.age].filter(Boolean).join(" · ") || "—"}
             </div>
             {client && (
-              <Link href={`/clients/${client.id}`} className="text-[13px] text-sage font-semibold mt-1 inline-block">
+              <Link href={`/clients/detail?id=${client.id}`} className="text-[13px] text-sage font-semibold mt-1 inline-block">
                 {client.owner_name}
               </Link>
             )}
@@ -108,7 +110,7 @@ export default function DogDetailPage() {
           ) : (
             <div className="space-y-2">
               {upcoming.map((w) => (
-                <Link key={w.id} href={`/walks/${w.id}/edit`} className="card p-3 flex items-center gap-3 active:bg-cream/40">
+                <Link key={w.id} href={`/walks/edit?id=${w.id}`} className="card p-3 flex items-center gap-3 active:bg-cream/40">
                   <div className="text-center w-16 shrink-0">
                     <div className="text-[12px] font-semibold text-charcoal">{formatShortDate(w.scheduled_date)}</div>
                     <div className="text-[11px] text-muted">{formatTime(w.scheduled_start_time)}</div>
@@ -129,7 +131,7 @@ export default function DogDetailPage() {
           ) : (
             <div className="space-y-2">
               {reports.map((r) => (
-                <Link key={r.id} href={`/reports/${r.id}`} className="card p-3 flex items-center gap-3 active:bg-cream/40">
+                <Link key={r.id} href={`/reports/detail?id=${r.id}`} className="card p-3 flex items-center gap-3 active:bg-cream/40">
                   <div className="flex-1 min-w-0">
                     <div className="font-semibold text-charcoal">{formatShortDate(r.date)}</div>
                     <div className="text-[12px] text-muted truncate">
@@ -149,5 +151,14 @@ export default function DogDetailPage() {
         </section>
       </div>
     </div>
+  );
+}
+
+
+export default function Page() {
+  return (
+    <Suspense fallback={null}>
+      <DogDetailPage />
+    </Suspense>
   );
 }

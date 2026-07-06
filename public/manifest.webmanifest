@@ -2,27 +2,27 @@
   "name": "Walk Report — Dog Walking Assistant",
   "short_name": "Walk Report",
   "description": "Plan the week, complete walks, and send beautiful owner reports.",
-  "start_url": "/today",
-  "scope": "/",
+  "start_url": "./today",
+  "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#F8F3EA",
   "theme_color": "#F8F3EA",
   "icons": [
     {
-      "src": "/icon.svg",
+      "src": "./icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
     },
     {
-      "src": "/icon-512.png",
+      "src": "./icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icon-512.png",
+      "src": "./icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"

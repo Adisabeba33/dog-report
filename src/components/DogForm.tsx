@@ -61,10 +61,10 @@ export default function DogForm({ existing }: { existing?: Dog }) {
     if (!d.name.trim() || !d.client_id) return;
     if (existing) {
       updateDog(existing.id, d);
-      router.push(`/dogs/${existing.id}`);
+      router.push(`/dogs/detail?id=${existing.id}`);
     } else {
       const dog = addDog(d);
-      router.push(`/dogs/${dog.id}`);
+      router.push(`/dogs/detail?id=${dog.id}`);
     }
   };
 

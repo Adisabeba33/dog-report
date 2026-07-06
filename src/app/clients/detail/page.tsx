@@ -1,7 +1,9 @@
 "use client";
 
+
+import { Suspense } from "react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useStore } from "@/lib/store";
 import { PageHeader, EmptyState, DogAvatar, StatusBadge } from "@/components/ui";
 import { formatShortDate, formatTime, todayISO } from "@/lib/date";
@@ -15,8 +17,8 @@ import {
   IconChevron,
 } from "@/components/icons";
 
-export default function ClientDetailPage() {
-  const { id } = useParams<{ id: string }>();
+function ClientDetailPage() {
+  const id = useSearchParams().get("id") ?? "";
   const router = useRouter();
   const { getClient, dogsForClient, db } = useStore();
   const client = getClient(id);
@@ -47,7 +49,7 @@ export default function ClientDetailPage() {
         title={client.owner_name}
         back="/clients"
         right={
-          <Link href={`/clients/${client.id}/edit`} aria-label="Edit" className="h-9 w-9 flex items-center justify-center rounded-full active:bg-beige/60">
+          <Link href={`/clients/edit?id=${client.id}`} aria-label="Edit" className="h-9 w-9 flex items-center justify-center rounded-full active:bg-beige/60">
             <IconEdit width={20} height={20} />
           </Link>
         }
@@ -123,7 +125,7 @@ export default function ClientDetailPage() {
           ) : (
             <div className="space-y-2">
               {dogs.map((dog) => (
-                <Link key={dog.id} href={`/dogs/${dog.id}`} className="card p-3 flex items-center gap-3 active:bg-cream/40">
+                <Link key={dog.id} href={`/dogs/detail?id=${dog.id}`} className="card p-3 flex items-center gap-3 active:bg-cream/40">
                   <DogAvatar name={dog.name} photo={dog.photo_url} size={44} />
                   <div className="flex-1 min-w-0">
                     <div className="font-semibold text-charcoal truncate">{dog.name}</div>
@@ -146,7 +148,7 @@ export default function ClientDetailPage() {
               {upcoming.map((w) => {
                 const dog = dogs.find((d) => d.id === w.dog_id);
                 return (
-                  <Link key={w.id} href={`/walks/${w.id}/edit`} className="card p-3 flex items-center gap-3 active:bg-cream/40">
+                  <Link key={w.id} href={`/walks/edit?id=${w.id}`} className="card p-3 flex items-center gap-3 active:bg-cream/40">
                     <div className="text-center w-16 shrink-0">
                       <div className="text-[12px] font-semibold text-charcoal">{formatShortDate(w.scheduled_date)}</div>
                       <div className="text-[11px] text-muted">{formatTime(w.scheduled_start_time)}</div>
@@ -170,7 +172,7 @@ export default function ClientDetailPage() {
               {reports.map((r) => {
                 const dog = dogs.find((d) => d.id === r.dog_id);
                 return (
-                  <Link key={r.id} href={`/reports/${r.id}`} className="card p-3 flex items-center gap-3 active:bg-cream/40">
+                  <Link key={r.id} href={`/reports/detail?id=${r.id}`} className="card p-3 flex items-center gap-3 active:bg-cream/40">
                     <DogAvatar name={dog?.name ?? "?"} photo={dog?.photo_url} size={38} />
                     <div className="flex-1 min-w-0">
                       <div className="font-semibold text-charcoal truncate">{dog?.name}</div>
@@ -198,5 +200,14 @@ function Row({ icon, children }: { icon: React.ReactNode; children: React.ReactN
       <span className="text-brown shrink-0">{icon}</span>
       <span className="min-w-0">{children}</span>
     </div>
+  );
+}
+
+
+export default function Page() {
+  return (
+    <Suspense fallback={null}>
+      <ClientDetailPage />
+    </Suspense>
   );
 }

@@ -34,7 +34,7 @@ export default function WalkCard({ walk }: { walk: Walk }) {
         </div>
 
         <button
-          onClick={() => router.push(`/dogs/${dog?.id ?? ""}`)}
+          onClick={() => router.push(`/dogs/detail?id=${dog?.id ?? ""}`)}
           className="shrink-0"
           aria-label={`Open ${dog?.name}`}
         >
@@ -80,7 +80,7 @@ export default function WalkCard({ walk }: { walk: Walk }) {
               <IconPlay width={18} height={18} /> Start
             </button>
             <button
-              onClick={() => router.push(`/walks/${walk.id}/complete`)}
+              onClick={() => router.push(`/walks/complete?id=${walk.id}`)}
               className="btn btn-primary flex-1 !py-2.5"
             >
               <IconCheck width={18} height={18} /> Complete
@@ -89,7 +89,7 @@ export default function WalkCard({ walk }: { walk: Walk }) {
         )}
         {walk.status === "in_progress" && (
           <button
-            onClick={() => router.push(`/walks/${walk.id}/complete`)}
+            onClick={() => router.push(`/walks/complete?id=${walk.id}`)}
             className="btn btn-primary flex-1 !py-2.5"
           >
             <IconCheck width={18} height={18} /> Complete walk
@@ -100,7 +100,7 @@ export default function WalkCard({ walk }: { walk: Walk }) {
         )}
         {(walk.status === "canceled" || walk.status === "skipped") && (
           <button
-            onClick={() => router.push(`/walks/${walk.id}/edit`)}
+            onClick={() => router.push(`/walks/edit?id=${walk.id}`)}
             className="btn btn-ghost flex-1 !py-2.5"
           >
             <IconEdit width={16} height={16} /> Edit
@@ -108,7 +108,7 @@ export default function WalkCard({ walk }: { walk: Walk }) {
         )}
         {walk.status !== "completed" && (
           <button
-            onClick={() => router.push(`/walks/${walk.id}/edit`)}
+            onClick={() => router.push(`/walks/edit?id=${walk.id}`)}
             aria-label="Edit walk"
             className="btn btn-ghost !px-3 !py-2.5"
           >
@@ -128,7 +128,7 @@ function CompletedActions({ walkId }: { walkId: string }) {
     <>
       <button
         onClick={() =>
-          router.push(report ? `/reports/${report.id}` : `/walks/${walkId}/complete`)
+          router.push(report ? `/reports/detail?id=${report.id}` : `/walks/complete?id=${walkId}`)
         }
         className="btn btn-accent flex-1 !py-2.5"
       >

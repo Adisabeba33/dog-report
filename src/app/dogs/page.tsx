@@ -49,7 +49,7 @@ export default function DogsPage() {
             {dogs.map((dog) => {
               const client = getClient(dog.client_id);
               return (
-                <Link key={dog.id} href={`/dogs/${dog.id}`} className="card p-3 flex flex-col items-center text-center active:bg-cream/40">
+                <Link key={dog.id} href={`/dogs/detail?id=${dog.id}`} className="card p-3 flex flex-col items-center text-center active:bg-cream/40">
                   <DogAvatar name={dog.name} photo={dog.photo_url} size={72} />
                   <div className="font-display font-bold text-charcoal mt-2 truncate w-full">{dog.name}</div>
                   <div className="text-[12px] text-muted truncate w-full">{dog.breed || "—"}</div>

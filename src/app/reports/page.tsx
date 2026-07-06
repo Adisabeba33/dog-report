@@ -92,7 +92,7 @@ export default function ReportsPage() {
             const dog = getDog(r.dog_id);
             const client = getClient(r.client_id);
             return (
-              <Link key={r.id} href={`/reports/${r.id}`} className="card p-3.5 flex items-center gap-3 active:bg-cream/40">
+              <Link key={r.id} href={`/reports/detail?id=${r.id}`} className="card p-3.5 flex items-center gap-3 active:bg-cream/40">
                 <DogAvatar name={dog?.name ?? "?"} photo={r.photos[0] || dog?.photo_url} size={48} />
                 <div className="flex-1 min-w-0">
                   <div className="font-display font-bold text-charcoal truncate">
