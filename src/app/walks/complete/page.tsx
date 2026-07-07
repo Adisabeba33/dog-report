@@ -5,15 +5,33 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useStore } from "@/lib/store";
 import type { Mood, Energy } from "@/lib/types";
 import { PageHeader, EmptyState, DogAvatar } from "@/components/ui";
-import { TextField, TextArea, Field, SectionCard, FormActions } from "@/components/form";
 import { MultiPhotoInput } from "@/components/PhotoInput";
-import { minutesBetween, nowTime, formatTime } from "@/lib/date";
-import { IconCheck } from "@/components/icons";
+import { formatLongDate, formatTime, minutesBetween } from "@/lib/date";
+import {
+  IconPaw,
+  IconReport,
+  IconChevron,
+  IconLock,
+  IconLeaf,
+  IconBars,
+  IconBolt,
+  IconDroplet,
+  IconWater,
+  IconPoop,
+  IconBowl,
+  IconTowel,
+  IconPill,
+} from "@/components/icons";
 
-const MOODS: Mood[] = ["Happy", "Calm", "Excited", "Nervous", "Tired", "Playful", "Relaxed"];
-const ENERGIES: Energy[] = ["Low", "Medium", "High"];
+const MOODS: Mood[] = ["Happy", "Calm", "Excited", "Tired", "Nervous", "Playful"];
+const ENERGIES: { key: Energy; Icon: typeof IconLeaf }[] = [
+  { key: "Low", Icon: IconLeaf },
+  { key: "Medium", Icon: IconBars },
+  { key: "High", Icon: IconBolt },
+];
+const SAGE = "#5F754D";
 
-function CompleteWalkPage() {
+function CompleteWalkInner() {
   const id = useSearchParams().get("id") ?? "";
   const router = useRouter();
   const { getWalk, getDog, db, addReport, updateReport, reportForWalk } = useStore();
@@ -22,34 +40,35 @@ function CompleteWalkPage() {
   const existingReport = walk ? reportForWalk(walk.id) : undefined;
   const dog = getDog(walk?.dog_id ?? "");
 
-  const [startT, setStartT] = useState(existingReport?.actual_start_time || walk?.scheduled_start_time || "09:00");
-  const [endT, setEndT] = useState(
-    existingReport?.actual_end_time || walk?.scheduled_end_time || nowTime(),
-  );
+  const startT = existingReport?.actual_start_time || walk?.scheduled_start_time || "09:00";
+  const endT = existingReport?.actual_end_time || walk?.scheduled_end_time || "09:30";
+
   const [mood, setMood] = useState<Mood | "">(existingReport?.mood ?? "Happy");
   const [energy, setEnergy] = useState<Energy | "">(existingReport?.energy ?? "Medium");
   const [pee, setPee] = useState(existingReport?.pee ?? true);
   const [poop, setPoop] = useState(existingReport?.poop ?? true);
   const [water, setWater] = useState(existingReport?.water ?? true);
   const [food, setFood] = useState(existingReport?.food ?? false);
+  const [towel, setTowel] = useState(existingReport?.towel_dry ?? false);
+  const [meds, setMeds] = useState(existingReport?.meds ?? false);
   const [photos, setPhotos] = useState<string[]>(existingReport?.photos ?? []);
   const [publicNote, setPublicNote] = useState(existingReport?.public_note ?? "");
   const [privateNote, setPrivateNote] = useState(existingReport?.private_note ?? walk?.private_notes ?? "");
+  const [showPrivate, setShowPrivate] = useState(!!existingReport?.private_note);
 
   const duration = useMemo(() => minutesBetween(startT, endT), [startT, endT]);
 
   if (!walk) {
     return (
       <div>
-        <PageHeader title="Complete Walk" back />
+        <PageHeader title="Write Report" back />
         <EmptyState title="Walk not found" />
       </div>
     );
   }
 
-  const applyTemplate = (text: string) => {
+  const applyTemplate = (text: string) =>
     setPublicNote((prev) => (prev.trim() ? `${prev.trim()} ${text}` : text));
-  };
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,6 +86,8 @@ function CompleteWalkPage() {
       poop,
       water,
       food,
+      towel_dry: towel,
+      meds,
       public_note: publicNote,
       private_note: privateNote,
       photos,
@@ -80,32 +101,50 @@ function CompleteWalkPage() {
     }
   };
 
-  return (
-    <form onSubmit={submit}>
-      <PageHeader title="Quick Report" subtitle={dog?.name} back />
+  const essentials: [string, typeof IconDroplet, boolean, (v: boolean) => void][] = [
+    ["Pee", IconDroplet, pee, setPee],
+    ["Poop", IconPoop, poop, setPoop],
+    ["Water", IconWater, water, setWater],
+    ["Food", IconBowl, food, setFood],
+    ["Towel dry", IconTowel, towel, setTowel],
+    ["Meds", IconPill, meds, setMeds],
+  ];
 
-      <div className="px-4 space-y-4">
-        {/* Dog banner */}
-        <div className="card p-3 flex items-center gap-3">
-          <DogAvatar name={dog?.name ?? "?"} photo={dog?.photo_url} size={48} />
-          <div>
-            <div className="font-display font-bold text-charcoal">{dog?.name}</div>
-            <div className="text-[13px] text-muted">Scheduled {formatTime(walk.scheduled_start_time)}</div>
+  return (
+    <form onSubmit={submit} className="pb-28">
+      <PageHeader title="Write Report" back />
+
+      <div className="px-5 space-y-4">
+        {/* Summary card */}
+        <div
+          className="rounded-3xl border p-3.5 flex items-center gap-3.5"
+          style={{ backgroundColor: "#F1EFE3", borderColor: "#E1DAC9" }}
+        >
+          <DogAvatar name={dog?.name ?? "?"} photo={dog?.photo_url} size={62} />
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5">
+              <span className="font-display text-[20px] font-extrabold text-charcoal">{dog?.name}</span>
+              <IconPaw width={16} height={16} className="text-sage" />
+            </div>
+            <div className="text-[13px]" style={{ color: "#9A7A4F" }}>{formatLongDate(walk.scheduled_date)}</div>
+            <div className="text-[13px] text-charcoal mt-0.5">
+              {formatTime(startT)} – {formatTime(endT)} <span className="text-muted">·</span> {duration} min
+            </div>
           </div>
         </div>
 
-        {/* Times */}
-        <SectionCard title="Time">
-          <div className="grid grid-cols-2 gap-3">
-            <TextField label="Started" type="time" value={startT} onChange={(e) => setStartT(e.target.value)} />
-            <TextField label="Ended" type="time" value={endT} onChange={(e) => setEndT(e.target.value)} />
-          </div>
-          <div className="text-[13px] text-brown font-semibold">{duration} minute walk</div>
-        </SectionCard>
+        {/* Photos */}
+        <Section title="Add Photos">
+          <MultiPhotoInput values={photos} onChange={setPhotos} max={5} />
+          {photos.length === 0 && (
+            <p className="text-[12px] text-muted mt-2">The first photo becomes the report’s hero image.</p>
+          )}
+        </Section>
 
-        {/* Mood */}
-        <SectionCard title="How was it?">
-          <Field label="Mood">
+        {/* Mood + energy */}
+        <Section title={`How was ${dog?.name ?? "the walk"}?`}>
+          <div>
+            <div className="text-[13px] font-semibold text-brown mb-2">Mood</div>
             <div className="flex flex-wrap gap-2">
               {MOODS.map((m) => (
                 <Chip key={m} active={mood === m} onClick={() => setMood(mood === m ? "" : m)}>
@@ -113,38 +152,56 @@ function CompleteWalkPage() {
                 </Chip>
               ))}
             </div>
-          </Field>
-          <Field label="Energy">
+          </div>
+          <div className="mt-4">
+            <div className="text-[13px] font-semibold text-brown mb-2">Energy</div>
             <div className="flex gap-2">
-              {ENERGIES.map((en) => (
+              {ENERGIES.map(({ key, Icon }) => (
                 <button
-                  key={en}
+                  key={key}
                   type="button"
-                  onClick={() => setEnergy(energy === en ? "" : en)}
-                  className={`flex-1 rounded-xl py-3 text-[15px] font-semibold border ${
-                    energy === en ? "bg-sage text-charcoal border-sage" : "bg-warmwhite text-muted border-beige"
-                  }`}
+                  onClick={() => setEnergy(energy === key ? "" : key)}
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl py-2.5 text-[15px] font-semibold border transition-colors"
+                  style={
+                    energy === key
+                      ? { backgroundColor: SAGE, color: "#fff", borderColor: SAGE }
+                      : { backgroundColor: "#FFFDF8", color: "#8A8176", borderColor: "#E6DDD0" }
+                  }
                 >
-                  {en}
+                  <Icon width={16} height={16} /> {key}
                 </button>
               ))}
             </div>
-          </Field>
-        </SectionCard>
-
-        {/* Booleans */}
-        <SectionCard title="Basics">
-          <div className="grid grid-cols-2 gap-3">
-            <YesNo label="Pee" value={pee} onChange={setPee} />
-            <YesNo label="Poop" value={poop} onChange={setPoop} />
-            <YesNo label="Water" value={water} onChange={setWater} />
-            <YesNo label="Food" value={food} onChange={setFood} />
           </div>
-        </SectionCard>
+        </Section>
 
-        {/* Note + templates */}
-        <SectionCard title="Note to owner">
-          <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-4 px-4 pb-1">
+        {/* Essentials */}
+        <Section title="Essentials">
+          <div className="grid grid-cols-2 gap-x-4 gap-y-2.5">
+            {essentials.map(([label, Icon, val, setVal]) => (
+              <div key={label} className="flex items-center gap-2">
+                <Icon width={18} height={18} className="text-brown/70 shrink-0" />
+                <span className="text-[14px] text-charcoal flex-1 truncate">{label}</span>
+                <button
+                  type="button"
+                  onClick={() => setVal(!val)}
+                  className="rounded-full text-[13px] font-bold px-3.5 py-1 min-w-[52px] transition-colors"
+                  style={
+                    val
+                      ? { backgroundColor: SAGE, color: "#fff" }
+                      : { backgroundColor: "#EFE7D8", color: "#8b7a5e" }
+                  }
+                >
+                  {val ? "Yes" : "No"}
+                </button>
+              </div>
+            ))}
+          </div>
+        </Section>
+
+        {/* Note to owner */}
+        <Section title="Note to owner">
+          <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-1 px-1 pb-1">
             {db.templates.map((t) => (
               <button
                 key={t.id}
@@ -156,37 +213,67 @@ function CompleteWalkPage() {
               </button>
             ))}
           </div>
-          <TextArea
-            label="Public note"
-            hint="This is what the owner sees. Tap a template above to fill it fast."
-            placeholder="Write a friendly update…"
-            value={publicNote}
-            onChange={(e) => setPublicNote(e.target.value)}
-          />
-        </SectionCard>
+          <div className="relative mt-2">
+            <textarea
+              value={publicNote}
+              maxLength={300}
+              onChange={(e) => setPublicNote(e.target.value)}
+              placeholder="Luna had a great walk today…"
+              className="field min-h-[120px] resize-y !pb-7"
+            />
+            <span className="absolute right-3 bottom-2.5 text-[12px] text-muted">{publicNote.length}/300</span>
+          </div>
+        </Section>
 
-        {/* Photos */}
-        <SectionCard title="Photos">
-          <MultiPhotoInput values={photos} onChange={setPhotos} max={4} />
-        </SectionCard>
-
-        {/* Private */}
-        <SectionCard title="Private note">
-          <TextArea
-            label="Private note"
-            privateNote
-            hint="Only visible to you. Never appears in the report."
-            value={privateNote}
-            onChange={(e) => setPrivateNote(e.target.value)}
-          />
-        </SectionCard>
+        {/* Private note (collapsed) */}
+        <div className="card overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setShowPrivate((v) => !v)}
+            className="w-full flex items-center gap-2 px-4 py-3.5 text-left"
+          >
+            <IconLock width={15} height={15} className="text-[#8a6d1f]" />
+            <span className="text-[14px] font-semibold text-charcoal flex-1">
+              Private note <span className="text-muted font-normal">— not shared with owner</span>
+            </span>
+            <IconChevron width={16} height={16} className={`text-muted transition-transform ${showPrivate ? "rotate-90" : ""}`} />
+          </button>
+          {showPrivate && (
+            <div className="px-4 pb-4">
+              <textarea
+                value={privateNote}
+                onChange={(e) => setPrivateNote(e.target.value)}
+                placeholder="Only visible to you. Never appears in the report."
+                className="field min-h-[80px] resize-y"
+                style={{ backgroundColor: "#F7EED8", borderColor: "#E7D9B4" }}
+              />
+            </div>
+          )}
+        </div>
       </div>
 
-      <FormActions
-        onCancel={() => router.back()}
-        saveLabel="Save & preview report"
-      />
+      {/* Sticky generate button */}
+      <div className="fixed bottom-0 inset-x-0 z-30 px-5 py-3 bg-cream/92 backdrop-blur-md border-t border-beige safe-bottom">
+        <div className="mx-auto max-w-md">
+          <button
+            type="submit"
+            className="w-full inline-flex items-center justify-center gap-2 rounded-2xl py-4 text-[16px] font-bold text-white active:opacity-90"
+            style={{ backgroundColor: SAGE }}
+          >
+            <IconReport width={19} height={19} /> Generate Report
+          </button>
+        </div>
+      </div>
     </form>
+  );
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="card p-4">
+      <h2 className="font-display text-[16px] font-bold text-charcoal mb-3">{title}</h2>
+      {children}
+    </section>
   );
 }
 
@@ -195,42 +282,22 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
     <button
       type="button"
       onClick={onClick}
-      className={`chip border ${active ? "bg-charcoal text-cream border-charcoal" : "bg-warmwhite text-muted border-beige"}`}
+      className="rounded-full px-4 py-2 text-[14px] font-semibold border transition-colors"
+      style={
+        active
+          ? { backgroundColor: SAGE, color: "#fff", borderColor: SAGE }
+          : { backgroundColor: "#FFFDF8", color: "#25221E", borderColor: "#E6DDD0" }
+      }
     >
       {children}
     </button>
   );
 }
 
-function YesNo({ label, value, onChange }: { label: string; value: boolean; onChange: (v: boolean) => void }) {
-  return (
-    <div className="rounded-xl border border-beige bg-warmwhite p-2.5">
-      <div className="text-[13px] font-semibold text-brown mb-1.5 px-0.5">{label}</div>
-      <div className="flex gap-1.5">
-        <button
-          type="button"
-          onClick={() => onChange(true)}
-          className={`flex-1 rounded-lg py-2 text-[14px] font-bold ${value ? "bg-sage text-charcoal" : "bg-beige/40 text-muted"}`}
-        >
-          Yes
-        </button>
-        <button
-          type="button"
-          onClick={() => onChange(false)}
-          className={`flex-1 rounded-lg py-2 text-[14px] font-bold ${!value ? "bg-charcoal text-cream" : "bg-beige/40 text-muted"}`}
-        >
-          No
-        </button>
-      </div>
-    </div>
-  );
-}
-
-
-export default function Page() {
+export default function CompleteWalkPage() {
   return (
     <Suspense fallback={null}>
-      <CompleteWalkPage />
+      <CompleteWalkInner />
     </Suspense>
   );
 }

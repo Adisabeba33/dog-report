@@ -207,6 +207,8 @@ export function seededDatabase(): Database {
       poop: true,
       water: true,
       food: false,
+      towel_dry: false,
+      meds: false,
       public_note:
         "Luna had a great walk today. She was calm, enjoyed sniffing around the park, and did both pee and poop. She got a little excited near other dogs but listened well.",
       private_note: "Slight limp early on, resolved after a minute.",

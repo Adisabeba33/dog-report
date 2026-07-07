@@ -112,6 +112,8 @@ export interface WalkReport {
   poop: boolean;
   water: boolean;
   food: boolean;
+  towel_dry: boolean;
+  meds: boolean;
   public_note: string;
   private_note: string;
   photos: string[]; // data URLs (report_photos folded in for local MVP)

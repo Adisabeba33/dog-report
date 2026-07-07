@@ -7,16 +7,17 @@ import ReportCard from "@/components/ReportCard";
 import { PageHeader, EmptyState } from "@/components/ui";
 import { nodeToPng, shareImage, downloadDataUrl, shareText } from "@/lib/image";
 import { buildReportText } from "@/lib/report";
-import { formatLongDate } from "@/lib/date";
+import { formatLongDate, formatTime } from "@/lib/date";
 import {
   IconShare,
   IconDownload,
   IconCopy,
   IconMail,
-  IconCheck,
   IconLock,
   IconEdit,
 } from "@/components/icons";
+
+const SAGE = "#5F754D";
 
 function ReportPreviewPage() {
   const id = useSearchParams().get("id") ?? "";
@@ -30,7 +31,7 @@ function ReportPreviewPage() {
   if (!report) {
     return (
       <div>
-        <PageHeader title="Report" back="/reports" />
+        <PageHeader title="Report Preview" back="/reports" />
         <EmptyState title="Report not found" />
       </div>
     );
@@ -47,22 +48,16 @@ function ReportPreviewPage() {
 
   const generate = async (): Promise<string> => {
     if (!cardRef.current) throw new Error("no card");
-    // Render twice: the first pass warms font/image embedding for crisp output.
-    await nodeToPng(cardRef.current);
+    await nodeToPng(cardRef.current); // warm fonts/images
     return nodeToPng(cardRef.current);
   };
+  const filename = () => `${(dog?.name || "walk").toLowerCase().replace(/\s+/g, "-")}-report.png`;
 
   const handleShare = async () => {
     setBusy("share");
     try {
       const png = await generate();
-      const filename = `${(dog?.name || "walk").toLowerCase().replace(/\s+/g, "-")}-report.png`;
-      const result = await shareImage(
-        png,
-        filename,
-        `${dog?.name ?? "Dog"}'s Walk Report`,
-        buildReportText(report, dog, settings),
-      );
+      const result = await shareImage(png, filename(), `${dog?.name ?? "Dog"}'s Walk Report`, buildReportText(report, dog, settings));
       markSent();
       flash(result === "shared" ? "Shared!" : "Image downloaded");
     } catch {
@@ -75,8 +70,7 @@ function ReportPreviewPage() {
   const handleSave = async () => {
     setBusy("save");
     try {
-      const png = await generate();
-      downloadDataUrl(png, `${(dog?.name || "walk").toLowerCase().replace(/\s+/g, "-")}-report.png`);
+      downloadDataUrl(await generate(), filename());
       flash("Image saved");
     } catch {
       flash("Could not generate image");
@@ -106,10 +100,14 @@ function ReportPreviewPage() {
     flash(report.sent_at ? "Marked not sent" : "Marked as sent");
   };
 
+  const sentLabel = report.sent_at
+    ? `Sent ${formatLongDate(report.date)}`
+    : "Not sent yet";
+
   return (
-    <div className="min-h-[100dvh]">
+    <div className="min-h-[100dvh] pb-40">
       <PageHeader
-        title="Report"
+        title="Report Preview"
         back="/reports"
         right={
           <button
@@ -123,26 +121,31 @@ function ReportPreviewPage() {
       />
 
       {/* Sent status */}
-      <div className="px-4">
+      <div className="px-5">
         <button
           onClick={toggleSent}
-          className={`chip ${report.sent_at ? "bg-sage/25 text-[#4c6140]" : "bg-beige text-brown"}`}
+          className="chip"
+          style={
+            report.sent_at
+              ? { backgroundColor: "#E4EDDB", color: "#4c6140" }
+              : { backgroundColor: "#EFE7D8", color: "#8b7a5e" }
+          }
         >
-          {report.sent_at ? "✓ Sent" : "Not sent yet"}
+          {report.sent_at ? `✓ ${sentLabel}` : sentLabel}
         </button>
       </div>
 
-      {/* Preview */}
-      <div className="px-4 mt-3 flex justify-center">
-        <div className="shadow-card rounded-[28px]">
+      {/* Preview card */}
+      <div className="px-5 mt-3 flex justify-center">
+        <div className="shadow-card rounded-[28px] w-full max-w-[380px]">
           <ReportCard ref={cardRef} report={report} dog={dog} settings={settings} />
         </div>
       </div>
 
-      {/* Private note (never in the image) */}
+      {/* Private note — never in the image */}
       {report.private_note && (
-        <div className="px-4 mt-4">
-          <div className="rounded-2xl bg-gold/15 border border-gold/30 p-4">
+        <div className="px-5 mt-4">
+          <div className="rounded-2xl border p-4" style={{ backgroundColor: "#F7EED8", borderColor: "#E7D9B4" }}>
             <div className="flex items-center gap-1.5 text-[#8a6d1f] font-semibold text-[13px] mb-1">
               <IconLock width={14} height={14} /> Private note — not shared
             </div>
@@ -152,40 +155,57 @@ function ReportPreviewPage() {
       )}
 
       {toast && (
-        <div className="fixed left-1/2 -translate-x-1/2 bottom-28 z-50 bg-charcoal text-cream text-[14px] px-4 py-2.5 rounded-full shadow-card">
+        <div className="fixed left-1/2 -translate-x-1/2 bottom-32 z-50 bg-charcoal text-cream text-[14px] px-4 py-2.5 rounded-full shadow-card">
           {toast}
         </div>
       )}
 
       {/* Actions */}
-      <div className="sticky bottom-0 mt-5 px-4 py-3 bg-cream/90 backdrop-blur-md border-t border-beige safe-bottom">
-        <button
-          onClick={handleShare}
-          disabled={!!busy}
-          className="btn btn-primary w-full mb-2 disabled:opacity-60"
-        >
-          <IconShare width={18} height={18} />
-          {busy === "share" ? "Preparing…" : "Share image"}
-        </button>
-        <div className="grid grid-cols-3 gap-2">
-          <button onClick={handleSave} disabled={!!busy} className="btn btn-ghost flex-col !py-2.5 text-[12px] gap-1">
-            <IconDownload width={20} height={20} />
-            {busy === "save" ? "…" : "Save"}
+      <div className="fixed bottom-0 inset-x-0 z-30 px-5 py-3 bg-cream/92 backdrop-blur-md border-t border-beige safe-bottom">
+        <div className="mx-auto max-w-md">
+          <button
+            onClick={handleShare}
+            disabled={!!busy}
+            className="w-full inline-flex items-center justify-center gap-2 rounded-2xl py-4 text-[16px] font-bold text-white disabled:opacity-60 active:opacity-90"
+            style={{ backgroundColor: SAGE }}
+          >
+            <IconShare width={19} height={19} />
+            {busy === "share" ? "Preparing…" : "Share image"}
           </button>
-          <button onClick={handleEmail} className="btn btn-ghost flex-col !py-2.5 text-[12px] gap-1">
-            <IconMail width={20} height={20} />
-            Email
-          </button>
-          <button onClick={handleCopy} className="btn btn-ghost flex-col !py-2.5 text-[12px] gap-1">
-            <IconCopy width={20} height={20} />
-            Copy text
-          </button>
+          <div className="grid grid-cols-3 gap-2 mt-2">
+            <ActionBtn onClick={handleSave} disabled={!!busy} Icon={IconDownload} label={busy === "save" ? "…" : "Save"} />
+            <ActionBtn onClick={handleEmail} Icon={IconMail} label="Email" />
+            <ActionBtn onClick={handleCopy} Icon={IconCopy} label="Copy text" />
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
+function ActionBtn({
+  onClick,
+  disabled,
+  Icon,
+  label,
+}: {
+  onClick: () => void;
+  disabled?: boolean;
+  Icon: typeof IconDownload;
+  label: string;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className="flex flex-col items-center justify-center gap-1 rounded-2xl py-2.5 text-[13px] font-semibold text-charcoal disabled:opacity-60 active:opacity-80"
+      style={{ backgroundColor: "#FFFDF8", border: "1px solid #E6DDD0" }}
+    >
+      <Icon width={19} height={19} className="text-brown" />
+      {label}
+    </button>
+  );
+}
 
 export default function Page() {
   return (

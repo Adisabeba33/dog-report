@@ -360,6 +360,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           poop: false,
           water: false,
           food: false,
+          towel_dry: false,
+          meds: false,
           public_note: "",
           private_note: "",
           photos: [],

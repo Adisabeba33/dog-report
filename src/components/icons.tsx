@@ -186,3 +186,71 @@ export const IconX = (p: P) => (
     <path d="M6 6l12 12M18 6 6 18" />
   </svg>
 );
+export const IconSmile = (p: P) => (
+  <svg {...base(p)}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M8.5 14.5a4.5 4.5 0 0 0 7 0" />
+    <circle cx="9" cy="10" r="0.9" fill="currentColor" stroke="none" />
+    <circle cx="15" cy="10" r="0.9" fill="currentColor" stroke="none" />
+  </svg>
+);
+export const IconLeaf = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M5 19c0-8 6-13 14-13 0 8-5 14-13 14a6 6 0 0 1-1-1z" />
+    <path d="M9 15c2-3 5-5 8-6" />
+  </svg>
+);
+export const IconBars = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M6 20v-6M12 20V8M18 20v-9" />
+  </svg>
+);
+export const IconBolt = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M13 3 5 13h6l-1 8 8-10h-6z" fill="currentColor" />
+  </svg>
+);
+export const IconDroplet = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M12 3c3.5 4 6 7 6 10a6 6 0 0 1-12 0c0-3 2.5-6 6-10z" />
+  </svg>
+);
+export const IconWater = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M6 4h12l-1 4H7z" />
+    <path d="M7 8h10l-1.2 10a2 2 0 0 1-2 1.8h-3.6a2 2 0 0 1-2-1.8z" />
+  </svg>
+);
+export const IconPoop = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M11 4c2 .5 2 2.5 1 3.5 2-.3 4 .8 4 2.7 2 .2 3 1.6 3 3 1.2.4 2 1.4 2 2.6 0 1.5-1.3 2.7-3 2.7H5c-1.7 0-3-1.2-3-2.7 0-1.2.8-2.2 2-2.6 0-1.4 1-2.8 3-3-.2-2 1.5-3.2 3.5-3z" />
+  </svg>
+);
+export const IconBowl = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M3 11h18l-1.5 6a3 3 0 0 1-3 2.3H7.5a3 3 0 0 1-3-2.3z" />
+    <path d="M8 11c0-2 1.8-3.5 4-3.5S16 9 16 11" />
+  </svg>
+);
+export const IconTowel = (p: P) => (
+  <svg {...base(p)}>
+    <rect x="5" y="4" width="14" height="16" rx="2" />
+    <path d="M5 8h14M9 4v16" />
+  </svg>
+);
+export const IconPill = (p: P) => (
+  <svg {...base(p)}>
+    <rect x="3.5" y="8" width="17" height="8" rx="4" transform="rotate(-45 12 12)" />
+    <path d="M9 9l6 6" />
+  </svg>
+);
+export const IconQuote = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M9 7c-2.5 1-4 3-4 6v4h5v-5H7c0-2 .8-3.5 2.6-4.4zM19 7c-2.5 1-4 3-4 6v4h5v-5h-3c0-2 .8-3.5 2.6-4.4z" fill="currentColor" stroke="none" />
+  </svg>
+);
+export const IconHeart = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M12 20s-7-4.3-7-9.3A3.7 3.7 0 0 1 12 7a3.7 3.7 0 0 1 7 3.7c0 5-7 9.3-7 9.3z" fill="currentColor" stroke="none" />
+  </svg>
+);
