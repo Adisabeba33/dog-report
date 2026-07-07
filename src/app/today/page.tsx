@@ -8,9 +8,10 @@ import {
   todayISO,
   addDays,
   isToday,
-  formatTime,
   weekdayName,
   parseISODate,
+  formatWindow,
+  isWindow,
 } from "@/lib/date";
 import type { Walk, WalkStatus } from "@/lib/types";
 import { DogAvatar } from "@/components/ui";
@@ -26,6 +27,7 @@ import {
   IconClients,
   IconLock,
   IconX,
+  IconClock,
 } from "@/components/icons";
 
 const MONTHS_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -271,14 +273,9 @@ function NextWalkCard({ walk, onStart }: { walk: Walk; onStart: () => void }) {
       </div>
 
       <div className="mt-2 flex gap-4">
-        <div className="flex flex-col items-center w-[84px] shrink-0">
-          <span className="font-display text-[15px] font-bold text-[#5c7249] whitespace-nowrap">
-            {formatTime(walk.scheduled_start_time)}
-          </span>
-          <button onClick={() => dog && router.push(`/dogs/detail?id=${dog.id}`)} className="mt-2">
-            <DogAvatar name={dog?.name ?? "?"} photo={dog?.photo_url} size={76} />
-          </button>
-        </div>
+        <button onClick={() => dog && router.push(`/dogs/detail?id=${dog.id}`)} className="shrink-0 self-start">
+          <DogAvatar name={dog?.name ?? "?"} photo={dog?.photo_url} size={76} />
+        </button>
 
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
@@ -292,7 +289,16 @@ function NextWalkCard({ walk, onStart }: { walk: Walk; onStart: () => void }) {
               {walk.duration_minutes} min
             </span>
           </div>
-          <div className="mt-2.5 flex items-center gap-1.5 text-[15px] text-charcoal">
+          <div className="mt-2 flex items-center gap-1.5 text-[15px] font-semibold text-[#5c7249]">
+            <IconClock width={15} height={15} className="shrink-0" />
+            <span className="truncate">
+              {formatWindow(walk.window_start, walk.window_end)}
+              {isWindow(walk.window_start, walk.window_end) && (
+                <span className="text-muted font-normal text-[13px]"> window</span>
+              )}
+            </span>
+          </div>
+          <div className="mt-1 flex items-center gap-1.5 text-[15px] text-charcoal">
             <IconClients width={15} height={15} className="text-muted shrink-0" />
             <span className="truncate">{client?.owner_name ?? ""}</span>
           </div>
@@ -363,7 +369,7 @@ function TimelineRow({
   const muted = walk.status === "canceled" || walk.status === "skipped";
   const scheduled = walk.status === "scheduled" && !isNext;
 
-  const [h, m] = walk.scheduled_start_time.split(":");
+  const [h, m] = walk.window_start.split(":");
   const hour12 = ((Number(h) + 11) % 12) + 1;
   const ampm = Number(h) >= 12 ? "PM" : "AM";
 
@@ -429,6 +435,11 @@ function TimelineRow({
             {dog?.name ?? "Unknown"}
           </div>
           <div className="text-[13px] text-muted truncate">{client?.owner_name ?? ""}</div>
+          {isWindow(walk.window_start, walk.window_end) && (
+            <div className="text-[12px] text-muted truncate mt-0.5">
+              {formatWindow(walk.window_start, walk.window_end)}
+            </div>
+          )}
           <div className="mt-1.5 flex items-center gap-2">
             <StatusPill status={walk.status} isNext={isNext} />
             {completed && (

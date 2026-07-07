@@ -34,7 +34,16 @@ function loadDatabase(): Database {
     if (!raw) return seededDatabase(); // first run → demo data
     const parsed = JSON.parse(raw) as Database;
     // Shallow-merge defaults so older saved data gains new fields.
-    return { ...emptyDatabase(), ...parsed, settings: { ...emptyDatabase().settings, ...parsed.settings } };
+    const db = { ...emptyDatabase(), ...parsed, settings: { ...emptyDatabase().settings, ...parsed.settings } };
+    // Migrate walks saved before time windows existed: treat the old fixed
+    // start time as an exact-time window (window_start === window_end).
+    db.walks = db.walks.map((w) => {
+      const anyW = w as Walk & { window_start?: string; window_end?: string };
+      if (anyW.window_start) return w;
+      const start = w.scheduled_start_time || "09:00";
+      return { ...w, window_start: start, window_end: start };
+    });
+    return db;
   } catch {
     return seededDatabase();
   }
@@ -228,8 +237,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           client_id: dog?.client_id ?? "",
           dog_id: "",
           scheduled_date: "",
+          window_start: "09:00",
+          window_end: "11:00",
           scheduled_start_time: "09:00",
-          scheduled_end_time: "09:30",
+          scheduled_end_time: "11:00",
           duration_minutes: db.settings.default_duration_minutes,
           status: "scheduled",
           repeat_rule: "none",
@@ -245,6 +256,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           id: data.id ?? newId(),
         };
         walk = attachGroupId(walk);
+        walk.scheduled_start_time = walk.window_start;
+        walk.scheduled_end_time = walk.window_end;
         const extras = expandRepeats(walk);
         mutate((d) => {
           d.walks.push(walk, ...extras);
@@ -254,9 +267,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       },
       updateWalk: (id, patch) =>
         mutate((d) => {
-          d.walks = d.walks.map((w) =>
-            w.id === id ? { ...w, ...patch, updated_at: nowISO() } : w,
-          );
+          d.walks = d.walks.map((w) => {
+            if (w.id !== id) return w;
+            const m = { ...w, ...patch, updated_at: nowISO() };
+            m.scheduled_start_time = m.window_start;
+            m.scheduled_end_time = m.window_end;
+            return m;
+          });
           return d;
         }),
       deleteWalk: (id) =>
@@ -268,14 +285,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       walksForDate: (date) =>
         db.walks
           .filter((w) => w.scheduled_date === date)
-          .sort((a, b) => a.scheduled_start_time.localeCompare(b.scheduled_start_time)),
+          .sort((a, b) => a.window_start.localeCompare(b.window_start)),
       walksForDog: (dogId) =>
         db.walks
           .filter((w) => w.dog_id === dogId)
           .sort(
             (a, b) =>
-              (a.scheduled_date + a.scheduled_start_time).localeCompare(
-                b.scheduled_date + b.scheduled_start_time,
+              (a.scheduled_date + a.window_start).localeCompare(
+                b.scheduled_date + b.window_start,
               ),
           ),
       duplicateWalk: (id) => {

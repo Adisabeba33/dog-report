@@ -155,8 +155,8 @@ export function seededDatabase(): Database {
   const mk = (
     dog: typeof luna,
     date: string,
-    start: string,
-    end: string,
+    winStart: string,
+    winEnd: string,
     dur: number,
     status: any,
     note = "",
@@ -165,8 +165,10 @@ export function seededDatabase(): Database {
     client_id: dog.client_id,
     dog_id: dog.id,
     scheduled_date: date,
-    scheduled_start_time: start,
-    scheduled_end_time: end,
+    window_start: winStart,
+    window_end: winEnd,
+    scheduled_start_time: winStart,
+    scheduled_end_time: winEnd,
     duration_minutes: dur,
     status,
     repeat_rule: "none" as const,
@@ -181,12 +183,12 @@ export function seededDatabase(): Database {
   });
 
   db.walks = [
-    mk(luna, today, "09:00", "09:30", 30, "scheduled", "Use back entrance. Avoid large dogs."),
-    mk(max, today, "10:00", "10:45", 45, "scheduled"),
-    mk(bella, today, "12:30", "13:00", 30, "scheduled"),
-    mk(luna, addDays(today, 1), "09:00", "09:30", 30, "scheduled"),
-    mk(max, addDays(today, 1), "10:00", "10:45", 45, "scheduled"),
-    mk(luna, addDays(today, -1), "09:00", "09:32", 30, "completed"),
+    mk(luna, today, "09:00", "10:00", 30, "scheduled", "Use back entrance. Avoid large dogs."),
+    mk(max, today, "10:00", "12:00", 45, "scheduled"),
+    mk(bella, today, "12:30", "14:00", 30, "scheduled"),
+    mk(luna, addDays(today, 1), "09:00", "10:00", 30, "scheduled"),
+    mk(max, addDays(today, 1), "10:00", "12:00", 45, "scheduled"),
+    mk(luna, addDays(today, -1), "09:00", "10:00", 30, "completed"),
   ];
 
   // One past completed report for history.

@@ -82,6 +82,11 @@ export interface Walk {
   client_id: ID;
   dog_id: ID;
   scheduled_date: ISODate;
+  // Scheduling uses a time window: the walk may happen any time between
+  // window_start and window_end. When they are equal the walk is a fixed time.
+  window_start: Time;
+  window_end: Time;
+  // Legacy alias kept in sync with window_start for older data / sorting.
   scheduled_start_time: Time;
   scheduled_end_time: Time;
   duration_minutes: number;

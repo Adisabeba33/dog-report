@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useStore, currentWeekMonday } from "@/lib/store";
-import { weekDates, addDays, formatTime, parseISODate, todayISO, isToday } from "@/lib/date";
+import { weekDates, addDays, parseISODate, isToday, formatWindow, isWindow } from "@/lib/date";
 import { DogAvatar } from "@/components/ui";
 import { IconPlus, IconChevron, IconChevronLeft, IconCopyWeek, IconCalendarSmall } from "@/components/icons";
 
@@ -229,9 +229,10 @@ function WeekRow({ walkId, first, last }: { walkId: string; first: boolean; last
   if (!walk) return null;
   const dog = getDog(walk.dog_id);
   const client = getClient(walk.client_id);
-  const [h, m] = walk.scheduled_start_time.split(":");
+  const [h, m] = walk.window_start.split(":");
   const hour12 = ((Number(h) + 11) % 12) + 1;
   const ampm = Number(h) >= 12 ? "PM" : "AM";
+  const windowed = isWindow(walk.window_start, walk.window_end);
   const canceled = walk.status === "canceled" || walk.status === "skipped";
 
   return (
@@ -250,7 +251,10 @@ function WeekRow({ walkId, first, last }: { walkId: string; first: boolean; last
         <div className={`font-display font-bold text-[16px] leading-tight truncate ${canceled ? "text-muted line-through" : "text-charcoal"}`}>
           {dog?.name ?? "Unknown"}
         </div>
-        <div className="text-[12px] text-muted truncate">{client?.owner_name ?? ""}</div>
+        <div className="text-[12px] text-muted truncate">
+          {client?.owner_name ?? ""}
+          {windowed && <span className="text-brown/70"> · {formatWindow(walk.window_start, walk.window_end)}</span>}
+        </div>
       </div>
       <div className="flex items-center gap-1 shrink-0">
         <span className="text-[13px] text-muted whitespace-nowrap">{walk.duration_minutes} min</span>

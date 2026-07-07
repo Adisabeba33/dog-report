@@ -6,7 +6,7 @@ import { useStore } from "@/lib/store";
 import type { Mood, Energy } from "@/lib/types";
 import { PageHeader, EmptyState, DogAvatar } from "@/components/ui";
 import { MultiPhotoInput } from "@/components/PhotoInput";
-import { formatLongDate, formatTime, minutesBetween } from "@/lib/date";
+import { formatLongDate, formatTime, minutesBetween, addMinutesToTime, isoToLocalTime, formatWindow } from "@/lib/date";
 import {
   IconPaw,
   IconReport,
@@ -40,9 +40,18 @@ function CompleteWalkInner() {
   const existingReport = walk ? reportForWalk(walk.id) : undefined;
   const dog = getDog(walk?.dog_id ?? "");
 
-  const startT = existingReport?.actual_start_time || walk?.scheduled_start_time || "09:00";
-  const endT = existingReport?.actual_end_time || walk?.scheduled_end_time || "09:30";
+  // Actual walk time (precise, shown to the owner). Defaults from the Start
+  // Walk timestamp if the walk was started, otherwise the window's start.
+  const defaultStart =
+    existingReport?.actual_start_time ||
+    (walk?.actual_start_time ? isoToLocalTime(walk.actual_start_time) : walk?.window_start) ||
+    "09:00";
+  const defaultEnd =
+    existingReport?.actual_end_time ||
+    addMinutesToTime(defaultStart, walk?.duration_minutes ?? 30);
 
+  const [startT, setStartT] = useState(defaultStart);
+  const [endT, setEndT] = useState(defaultEnd);
   const [mood, setMood] = useState<Mood | "">(existingReport?.mood ?? "Happy");
   const [energy, setEnergy] = useState<Energy | "">(existingReport?.energy ?? "Medium");
   const [pee, setPee] = useState(existingReport?.pee ?? true);
@@ -128,10 +137,35 @@ function CompleteWalkInner() {
             </div>
             <div className="text-[13px]" style={{ color: "#9A7A4F" }}>{formatLongDate(walk.scheduled_date)}</div>
             <div className="text-[13px] text-charcoal mt-0.5">
-              {formatTime(startT)} – {formatTime(endT)} <span className="text-muted">·</span> {duration} min
+              {formatWindow(walk.window_start, walk.window_end)}
+              <span className="text-muted"> · {walk.duration_minutes} min</span>
             </div>
           </div>
         </div>
+
+        {/* Walk time (actual, shown to owner) */}
+        <Section title="Walk time">
+          <div className="flex items-center gap-2">
+            <input
+              type="time"
+              aria-label="Started"
+              value={startT}
+              onChange={(e) => setStartT(e.target.value)}
+              className="field !py-3 flex-1"
+            />
+            <span className="text-muted text-[14px] shrink-0">to</span>
+            <input
+              type="time"
+              aria-label="Ended"
+              value={endT}
+              onChange={(e) => setEndT(e.target.value)}
+              className="field !py-3 flex-1"
+            />
+          </div>
+          <p className="text-[12px] text-muted mt-2">
+            The real time you walked — shown to the owner. {duration} min total.
+          </p>
+        </Section>
 
         {/* Photos */}
         <Section title="Add Photos">

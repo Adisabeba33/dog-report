@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useStore } from "@/lib/store";
 import { PageHeader, EmptyState, DogAvatar, StatusBadge } from "@/components/ui";
-import { formatShortDate, formatTime, todayISO } from "@/lib/date";
+import { formatShortDate, todayISO, formatWindow } from "@/lib/date";
 import {
   IconPhone,
   IconMail,
@@ -151,7 +151,7 @@ function ClientDetailPage() {
                   <Link key={w.id} href={`/walks/edit?id=${w.id}`} className="card p-3 flex items-center gap-3 active:bg-cream/40">
                     <div className="text-center w-16 shrink-0">
                       <div className="text-[12px] font-semibold text-charcoal">{formatShortDate(w.scheduled_date)}</div>
-                      <div className="text-[11px] text-muted">{formatTime(w.scheduled_start_time)}</div>
+                      <div className="text-[11px] text-muted">{formatWindow(w.window_start, w.window_end)}</div>
                     </div>
                     <div className="flex-1 min-w-0 font-semibold text-charcoal truncate">{dog?.name}</div>
                     <StatusBadge status={w.status} />

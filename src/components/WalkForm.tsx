@@ -1,14 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import type { Walk, RepeatRule, WalkStatus } from "@/lib/types";
 import { useStore } from "@/lib/store";
 import { PageHeader, EmptyState } from "@/components/ui";
 import { TextField, TextArea, SelectField, FormActions, SectionCard, Field } from "@/components/form";
-import { addMinutesToTime } from "@/lib/date";
-import { todayISO } from "@/lib/date";
+import { todayISO, formatWindow, isWindow } from "@/lib/date";
 
 const DURATIONS = [15, 20, 30, 45, 60, 90];
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -23,7 +22,8 @@ export default function WalkForm({ existing }: { existing?: Walk }) {
 
   const [dogId, setDogId] = useState(existing?.dog_id ?? presetDog ?? db.dogs[0]?.id ?? "");
   const [date, setDate] = useState(existing?.scheduled_date ?? presetDate);
-  const [start, setStart] = useState(existing?.scheduled_start_time ?? "09:00");
+  const [winStart, setWinStart] = useState(existing?.window_start ?? "09:00");
+  const [winEnd, setWinEnd] = useState(existing?.window_end ?? "11:00");
   const [duration, setDuration] = useState(existing?.duration_minutes ?? db.settings.default_duration_minutes);
   const [repeat, setRepeat] = useState<RepeatRule>(existing?.repeat_rule ?? "none");
   const [repeatDays, setRepeatDays] = useState<number[]>(existing?.repeat_days ?? []);
@@ -33,7 +33,8 @@ export default function WalkForm({ existing }: { existing?: Walk }) {
 
   const dog = getDog(dogId);
   const client = db.clients.find((c) => c.id === dog?.client_id);
-  const end = useMemo(() => addMinutesToTime(start, duration), [start, duration]);
+  // Keep the window valid: latest must not be earlier than earliest.
+  const normalizedEnd = winEnd < winStart ? winStart : winEnd;
 
   if (db.dogs.length === 0) {
     return (
@@ -62,8 +63,10 @@ export default function WalkForm({ existing }: { existing?: Walk }) {
       dog_id: dogId,
       client_id: dog?.client_id ?? "",
       scheduled_date: date,
-      scheduled_start_time: start,
-      scheduled_end_time: end,
+      window_start: winStart,
+      window_end: normalizedEnd,
+      scheduled_start_time: winStart,
+      scheduled_end_time: normalizedEnd,
       duration_minutes: duration,
       repeat_rule: repeat,
       repeat_days: repeat === "custom" ? repeatDays : [],
@@ -99,10 +102,40 @@ export default function WalkForm({ existing }: { existing?: Walk }) {
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-3">
-            <TextField label="Date" type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
-            <TextField label="Start time" type="time" value={start} onChange={(e) => setStart(e.target.value)} required />
-          </div>
+          <TextField label="Date" type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
+
+          <Field label="Time window" hint="The walk can happen any time in this window. Set both the same for a fixed time.">
+            <div className="flex items-center gap-2">
+              <input
+                type="time"
+                aria-label="Earliest"
+                value={winStart}
+                onChange={(e) => {
+                  setWinStart(e.target.value);
+                  if (winEnd < e.target.value) setWinEnd(e.target.value);
+                }}
+                className="field !py-3 flex-1"
+                required
+              />
+              <span className="text-muted text-[14px] shrink-0">to</span>
+              <input
+                type="time"
+                aria-label="Latest"
+                value={winEnd}
+                onChange={(e) => setWinEnd(e.target.value)}
+                className="field !py-3 flex-1"
+                required
+              />
+            </div>
+            <div className="mt-2 text-[13px]">
+              <span className="chip" style={{ backgroundColor: "#E8EFE2", color: "#4c6140" }}>
+                {isWindow(winStart, normalizedEnd)
+                  ? `Window ${formatWindow(winStart, normalizedEnd)}`
+                  : `Fixed ${formatWindow(winStart)}`}
+                {` · ${duration} min`}
+              </span>
+            </div>
+          </Field>
 
           <Field label="Duration">
             <div className="flex flex-wrap gap-2">
@@ -118,9 +151,6 @@ export default function WalkForm({ existing }: { existing?: Walk }) {
                   {m} min
                 </button>
               ))}
-            </div>
-            <div className="text-[12px] text-muted mt-2">
-              Ends around {formatEnd(end)}
             </div>
           </Field>
         </SectionCard>
@@ -226,12 +256,4 @@ export default function WalkForm({ existing }: { existing?: Walk }) {
       />
     </form>
   );
-}
-
-function formatEnd(t: string) {
-  const [h, m] = t.split(":").map(Number);
-  const ampm = h >= 12 ? "PM" : "AM";
-  let hh = h % 12;
-  if (hh === 0) hh = 12;
-  return `${hh}:${String(m).padStart(2, "0")} ${ampm}`;
 }

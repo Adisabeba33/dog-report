@@ -102,6 +102,28 @@ export function nowTime(): Time {
   return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 }
 
+// Extract a local "HH:MM" from an ISO timestamp.
+export function isoToLocalTime(iso: string): Time {
+  const d = new Date(iso);
+  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
+
+// Format a scheduling window. Equal start/end → a single fixed time.
+// Same meridiem → "9:00–11:00 AM"; otherwise "9:00 AM – 1:00 PM".
+export function formatWindow(start: Time, end?: Time): string {
+  if (!end || end === start) return formatTime(start);
+  const s = formatTime(start);
+  const e = formatTime(end);
+  const sSuf = s.slice(-2);
+  const eSuf = e.slice(-2);
+  if (sSuf === eSuf) return `${s.slice(0, -3)}–${e}`;
+  return `${s} – ${e}`;
+}
+
+export function isWindow(start: Time, end?: Time): boolean {
+  return !!end && end !== start;
+}
+
 export function isToday(s: ISODate): boolean {
   return s === todayISO();
 }
