@@ -6,8 +6,20 @@ import BottomNav from "./BottomNav";
 import { useStore } from "@/lib/store";
 import { IconPaw } from "./icons";
 
-// Routes that render full-screen without the bottom tab bar.
-const FULLSCREEN_PREFIXES = ["/welcome", "/walks/", "/reports/"];
+// Routes that render full-screen (their own bottom action bar) without the
+// tab bar. Matched against the trailing-slash-normalized path, so list pages
+// like /reports keep the nav while /reports/detail hides it.
+const FULLSCREEN_ROUTES = [
+  "/welcome",
+  "/walks/new",
+  "/walks/edit",
+  "/walks/complete",
+  "/reports/detail",
+  "/clients/new",
+  "/clients/edit",
+  "/dogs/new",
+  "/dogs/edit",
+];
 
 export default function AppChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -24,10 +36,8 @@ export default function AppChrome({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const hideNav =
-    FULLSCREEN_PREFIXES.some((p) => pathname.startsWith(p)) &&
-    // keep nav on the reports list itself
-    pathname !== "/reports";
+  const path = pathname.replace(/\/+$/, "") || "/";
+  const hideNav = FULLSCREEN_ROUTES.some((p) => path === p || path.startsWith(p + "/"));
 
   if (!ready) {
     return (
